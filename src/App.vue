@@ -4,14 +4,21 @@ import Navbar from './components/Navbar.vue';
 
 const videoEl = ref(null);
 const isFrontCamera = ref(true);
+const currentStream = ref(null);
 
 const startCamera = async () => {
+  if (currentStream) {
+    currentStream.value.getTracks().forEach((track) => track.stop());
+  }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: isFrontCamera ? 'user' : 'environment' },
+      video: {
+        facingMode: isFrontCamera.value ? 'user' : 'environment',
+      },
     });
     if (videoEl.value) {
       videoEl.value.srcObject = stream;
+      currentStream = stream;
     }
   } catch (error) {
     alert(error);
@@ -38,7 +45,7 @@ onMounted(startCamera());
     >
       <div class="lg:col-span-3 lg:row-span-5 lg:order-1 relative">
         <button
-          @click="isFrontCamera = !isFrontCamera"
+          @click="toggleCamera"
           class="z-10 absolute group top-2 right-2 text-white font-black bg-black/50 p-2 rounded-full cursor-pointer"
         >
           <i
