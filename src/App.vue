@@ -94,7 +94,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col lg:h-screen bg-gray-900 text-white">
+  <div class="flex flex-col min-h-screen lg:h-screen bg-gray-900 text-white">
     <!-- Header -->
     <header
       class="p-4 flex justify-between items-center bg-black sticky top-0 z-50"
