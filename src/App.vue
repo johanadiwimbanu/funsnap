@@ -1,12 +1,24 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import Navbar from './components/Navbar.vue';
+import sampleImage from './../public/sample.jpg';
+import Button from 'primevue/button';
+import Card from 'primevue/card';
 
 const videoEl = ref(null);
 const isFrontCamera = ref(true);
 const currentStream = ref(null);
 const photos = ref([]);
 const isMultiVideoInputDevice = ref(null);
+const currentFilter = ref('none');
+const filters = [
+  { name: 'Normal', value: 'none' },
+  { name: 'Grayscale', value: 'grayscale(100%)' },
+  { name: 'Sepia', value: 'sepia(80%)' },
+  { name: 'Blur', value: 'blur(4px)' },
+  { name: 'Brightness', value: 'brightness(1.5)' },
+  { name: 'Contrast', value: 'contrast(200%)' },
+];
 
 const checkIsMultiVideoInputDevice = async () => {
   const inputDevices = await navigator.mediaDevices.enumerateDevices();
@@ -49,6 +61,8 @@ const takePhoto = () => {
   canvas.height = videoEl.value.videoHeight;
 
   const ctx = canvas.getContext('2d');
+
+  ctx.filter = currentFilter.value;
   ctx.drawImage(videoEl.value, 0, 0, canvas.width, canvas.height);
 
   // Mengambil URL data dari canvas
@@ -65,6 +79,14 @@ const takePhoto = () => {
   console.log('Photo taken!');
 };
 
+const handleSetCurrentFilter = (filter) => {
+  currentFilter.value = filter;
+};
+
+const handleMaintenance = () => {
+  alert('Tak totokno lek ndak wegah');
+};
+
 onMounted(() => {
   checkIsMultiVideoInputDevice();
   startCamera();
@@ -72,79 +94,169 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- container -->
-  <div
-    class="w-full lg:w-[80%] mx-auto my-4 px-4 flex flex-col justify-between gap-6"
-  >
-    <Navbar />
-    <div
-      class="grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-6 gap-2 w-full min-h-96 h-"
+  <div class="flex flex-col lg:h-screen bg-gray-900 text-white">
+    <!-- Header -->
+    <header
+      class="p-4 flex justify-between items-center bg-black sticky top-0 z-50"
     >
-      <div class="lg:col-span-3 lg:row-span-5 lg:order-1 relative">
-        <button
-          v-if="isMultiVideoInputDevice"
-          @click="toggleCamera"
-          class="z-10 absolute group top-2 right-2 text-white font-black bg-black/50 p-2 rounded-full cursor-pointer"
+      <h1 class="text-2xl font-bold flex items-center">
+        <i class="pi pi-camera mr-2"></i>
+        <span class="text-white"
+          >fun<span class="text-blue-400">snap</span></span
         >
-          <i
-            class="pi pi-sync !text-xl transition-transform duration-300 group-hover:rotate-135"
-            :class="isFrontCamera ? 'rotate-90' : 'rotate-0'"
-          ></i>
-        </button>
-        <video
-          autoplay
-          playsinline
-          ref="videoEl"
-          id="camera"
-          class="h-[32rem] rounded-2xl lg:h-auto w-full object-cover overflow-hidden"
-        ></video>
-        <div
-          class="rounded-full px-4 py-3 bg-black/50 group text-white cursor-pointer grid place-items-center absolute left-1/2 -translate-x-1/2 bottom-4"
+      </h1>
+      <div class="flex space-x-4">
+        <Button
+          icon="pi pi-share-alt"
+          @click="handleMaintenance"
+          class="p-button-rounded p-button-text"
+        />
+        <Button
+          icon="pi pi-download"
+          @click="handleMaintenance"
+          class="p-button-rounded p-button-text"
+        />
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex flex-1 flex-col lg:flex-row overflow-hidden">
+      <!-- Sidebar -->
+      <div
+        class="w-full lg:w-16 order-3 lg:order-0 bg-gray-900 border-r border-gray-800 flex lg:flex-col items-center py-4 gap-4 lg:space-y-6"
+      >
+        <div class="hide lg:flex-1"></div>
+        <a
+          target="_blank"
+          href="https://github.com/johanadiwimbanu/funsnap"
+          class="p-link p-button-rounded p-button-text"
         >
-          <i class="pi pi-camera !text-xl" @click="takePhoto" />
+          <i class="pi pi-github"></i>
+        </a>
+        <a
+          target="_blank"
+          href="https://www.linkedin.com/in/johan-adi-wimbanu-1b0a2b27a/"
+          class="p-link p-button-rounded p-button-text"
+        >
+          <i class="pi pi-linkedin text-blue-500"></i>
+        </a>
+        <a
+          target="_blank"
+          href="https://www.instagram.com/_awjohn/"
+          class="p-link p-button-rounded p-button-text"
+        >
+          <i class="pi pi-instagram text-pink-500"></i>
+        </a>
+      </div>
+
+      <!-- Main Image Area -->
+      <div class="flex-1 flex flex-col">
+        <div class="flex-1 bg-black flex items-center justify-center p-4">
+          <div
+            class="relative w-full max-w-4xl aspect-video bg-gray-800 rounded-lg overflow-hidden"
+          >
+            <div class="absolute top-6 right-4 z-10">
+              <Button
+                v-if="isMultiVideoInputDevice"
+                @click="toggleCamera"
+                :class="isFrontCamera ? 'rotate-90' : 'rotate-0'"
+                icon="pi pi-sync"
+                class="p-button-rounded p-button-secondary"
+              />
+            </div>
+            <video
+              autoplay
+              playsinline
+              ref="videoEl"
+              id="camera"
+              :style="{ filter: currentFilter }"
+              class="rounded-2xl w-full h-full object-fit overflow-hidden"
+            ></video>
+            <div class="absolute bottom-4 right-4">
+              <Button
+                icon="pi pi-camera"
+                class="p-button-rounded p-button-info"
+                @click="takePhoto"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Options -->
+        <div class="bg-black p-4">
+          <h3 class="mb-3 text-gray-400 font-medium">Filters</h3>
+          <div class="flex space-x-4 overflow-x-auto p-2">
+            <div
+              v-for="filter in filters"
+              :key="filter.name"
+              @click="handleSetCurrentFilter(filter.value)"
+              class="flex flex-col items-center cursor-pointer transition-all group"
+              :class="{
+                'scale-95': currentFilter === filter.value,
+                'scale-100 hover:scale-95': currentFilter !== filter.value,
+              }"
+            >
+              <div
+                class="w-16 h-16 rounded-lg flex items-center justify-center overflow-hidden ring-1 ring-gray-700"
+                :class="{
+                  'border-blue-500 border': currentFilter === filter.value,
+                  'ring-1 ring-gray-700': currentFilter !== filter.value,
+                }"
+              >
+                <img
+                  :src="sampleImage"
+                  :style="{ filter: filter.value }"
+                  alt="Sample photo"
+                  class="rounded w-full object-cover"
+                />
+              </div>
+              <span
+                class="text-xs"
+                :class="{
+                  'text-blue-400': currentFilter === filter.value,
+                  'text-gray-400 group-hover:text-gray-300':
+                    currentFilter !== filter.value,
+                }"
+              >
+                {{ filter.name }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
-      <div
-        class="lg:col-span-3 lg:row-span-1 lg:order-3 rounded-lg min-w-80 max-sm"
-      >
-        <ul class="list-none p-2 flex justfy-center gap-4 overflow-auto">
-          <li
-            v-for="photo in photos"
-            :key="photo.id"
-            class="flex-none relative"
-          >
-            <span
-              class="text-xs absolute top-1 left-1 font-semibold text-gray-900"
-              >filter-{{ saturated }}</span
-            >
-            <img
-              :src="photo.url"
-              alt="Captured photo"
-              class="rounded w-16 shadow"
-            />
-          </li>
-        </ul>
-      </div>
-      <div class="lg:col-span-1 lg:row-span-6 lg:order-2">
-        <ul class="list-none p-2 flex gap-4 overflow-auto">
-          <li
+
+      <!-- Right Sidebar -->
+      <div class="w-full lg:w-64 bg-gray-900 border-l border-gray-800 p-4">
+        <h3 class="text-gray-400 font-medium">Recent Captures</h3>
+        <div
+          class="grid grid-cols-2 lg:flex lg:flex-col gap-2 lg:overflow-y-auto w-full h-full custom-scrollbar"
+        >
+          <div
             v-for="photo in photos.reverse()"
             :key="photo.id"
-            class="flex-none"
+            class="p-card mb-2 p-2 cursor-pointer hover:border-blue-500 border-2 border-transparent transition-all"
           >
-            <img
-              :src="photo.url"
-              alt="Captured photo"
-              class="rounded w-24 shadow"
-            />
-          </li>
-        </ul>
+            <img :src="photo.url" class="w-full h-32 object-contain rounded" />
+          </div>
+        </div>
       </div>
     </div>
-    <footer class="text-center p-2">
-      Copyright &copy; Johan Adi Wimbanu - 2025
+
+    <!-- Footer -->
+    <footer class="p-2 text-center bg-black text-gray-600 text-xs">
+      Copyright © FunSnap - 2025
     </footer>
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px; /* untuk scroll vertikal */
+  height: 6px; /* untuk scroll horizontal */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2); /* warna thumb */
+  border-radius: 4px;
+}
+</style>
