@@ -1,13 +1,11 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import Navbar from './components/Navbar.vue';
+import { ref, onMounted, shallowRef } from 'vue';
 import sampleImage from './../public/sample.jpg';
 import Button from 'primevue/button';
-import Card from 'primevue/card';
 
-const videoEl = ref(null);
+const videoEl = shallowRef(null);
+const currentStream = shallowRef(null);
 const isFrontCamera = ref(true);
-const currentStream = ref(null);
 const photos = ref([]);
 const isMultiVideoInputDevice = ref(null);
 const currentFilter = ref('none');
@@ -21,6 +19,7 @@ const filters = [
 ];
 
 const checkIsMultiVideoInputDevice = async () => {
+  console.log('cek device');
   const inputDevices = await navigator.mediaDevices.enumerateDevices();
   const videoInputDevices = inputDevices.filter(
     (device) => device.kind === 'videoinput'
@@ -29,6 +28,7 @@ const checkIsMultiVideoInputDevice = async () => {
 };
 
 const startCamera = async () => {
+  console.log('render camera');
   if (currentStream) {
     currentStream.value?.getTracks().forEach((track) => track.stop());
   }
@@ -68,14 +68,14 @@ const takePhoto = () => {
   // Mengambil URL data dari canvas
   const photoUrl = canvas.toDataURL('image/jpeg');
 
-  // Menambahkan foto ke array
-  photos.value.push({
+  const newPhotos = [...photos.value];
+  newPhotos.unshift({
     id: Date.now(),
     url: photoUrl,
     timestamp: new Date().toISOString(),
   });
+  photos.value = newPhotos;
 
-  // Optional: Tambahkan efek flash atau suara rana
   console.log('Photo taken!');
 };
 
@@ -232,7 +232,7 @@ onMounted(() => {
           class="grid grid-cols-2 lg:flex lg:flex-col gap-2 lg:overflow-y-auto w-full h-full custom-scrollbar"
         >
           <div
-            v-for="photo in photos.reverse()"
+            v-for="photo in photos"
             :key="photo.id"
             class="p-card mb-2 p-2 cursor-pointer hover:border-blue-500 border-2 border-transparent transition-all"
           >
